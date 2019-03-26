@@ -10,6 +10,25 @@
 
 #include"LinkedList.h"
 
+#define DEBUG
+int  compareItems(Item it1, Item it2)
+{
+    int i1, i2;
+
+    i1 = *((int *) it1);
+    i2 = *((int *) it2);
+
+    if (i1 < i2)
+        return -1;
+    if (i1 > i2)
+        return 1;
+    return 0;
+}
+
+void freeEntryItem(Item item)
+{
+    return;       /* no mem actually allocated */
+}
 
 /* define ratio of data items, N, to buckets, M, according to taste */
 #define NMR 4
@@ -19,22 +38,46 @@
  *    bucketSort()
  *
  */
-void    bucketSort(int *vtab, LinkedList **btab,
+void bucketSort(int *vtab, LinkedList **btab,
                     int bcnt, int vcnt, int vmin, int vmax)
 {
-    int i;
+    int i, idx=0;
     LinkedList *lp;
+    int err;
 
+    LinkedList *aux;
+
+    /*inicia todas as listas como NULL*/
     for (i=0; i < bcnt; i++)
     {
         lp = initLinkedList();
         btab[i] = lp;
     }
-    
+   
+    /*preencher as listas com os valores*/ 
     for (i=0; i < vcnt; i++)
     {
-        vtab[i] = 0;
+        idx=(bcnt*vtab[i])/(vmax+1);
+        btab[idx]=insertSortedLinkedList(btab[idx], (Item) &(vtab[i]), compareItems, &err);
+        aux = btab[idx];
     }
+
+    printf("\nLista imprimida de forma crescente:\n");
+    /* Impressão da lista */
+    for (i=0; i < bcnt; i++){
+        aux = btab[i];
+
+        while(aux != NULL){
+            printf("%d\n", *((int *) getItemLinkedList(aux)));
+            aux = getNextNodeLinkedList(aux);
+        }
+
+    }
+
+    for (i=0; i < bcnt; i++)
+        freeLinkedList(btab[i], freeEntryItem);
+    
+   
 }
 
 
@@ -71,7 +114,7 @@ int main(int argc, char *argv[])
         if (ibuf > vmax)    vmax = ibuf;
         if (ibuf < vmin)    vmin = ibuf;
     }
-/*  printf("Read %d ints, min = %d, max = %d\n", vcnt, vmin, vmax);     */
+    printf("Read %d ints, min = %d, max = %d\n", vcnt, vmin, vmax);     
 
     /* allocate memory for int value table   */
     vtab = (int *) malloc( vcnt * sizeof(int) );
@@ -92,9 +135,6 @@ int main(int argc, char *argv[])
 
     bucketSort(vtab, btab, bcnt, vcnt, vmin, vmax);
 
-    for (i=0; i < vcnt; i++) {
-        printf("%d\n", vtab[i]);
-    }
 
     /* free memory */
 
